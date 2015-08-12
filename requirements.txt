@@ -1,0 +1,3 @@
+pbr
+Sphinx
+asynqp==0.4
