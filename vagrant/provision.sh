@@ -27,9 +27,6 @@ echo 'mkvirtualenv alamo' >> /home/vagrant/.bashrc
 echo 'fi' >> /home/vagrant/.bashrc
 fi
 
-rabbitmq-plugins enable rabbitmq_management
-service rabbitmq-server restart
-
 # Install application environment
 su -l vagrant -c '/home/vagrant/.virtualenvs/alamo/bin/pip install ipython tox'
 su -l vagrant -c '/home/vagrant/.virtualenvs/alamo/bin/pip install asyncio asynqp'
