@@ -3,9 +3,11 @@ from __future__ import unicode_literals
 
 import argparse
 import os
-from configparser import ConfigParser
+
+from configparser import ConfigParser, NoOptionError
 
 from alamo_worker.logger import get_console_logger
+from alamo_worker.plugins import PluginManager
 
 logger = get_console_logger(__name__)
 
@@ -17,6 +19,7 @@ class WorkerManagement(object):
 
     def __init__(self):
         self.parser = self.build_args()
+        self.manager = PluginManager()
 
     @staticmethod
     def build_args():
@@ -47,6 +50,17 @@ class WorkerManagement(object):
 
     def execute(self):
         self.parse_config()
+        try:
+            plugins = self.config.get('default', 'plugins').split(',')
+        except NoOptionError:
+            plugins = []
+
+        # list could have "empty" string ...
+        plugins = [plugin for plugin in plugins if plugin]
+
+        assert plugins, 'At least one plugin should be defined in config file.'
+
+        self.manager.load(self.config, plugins)
 
         zero_mq_host = self.config.get('zero_mq', 'remote_host')
         zero_mq_port = self.config.get('zero_mq', 'remote_port')
@@ -58,3 +72,7 @@ class WorkerManagement(object):
 def main():
     management = WorkerManagement()
     management.execute()
+
+
+if __name__ == '__main__':
+    main()
