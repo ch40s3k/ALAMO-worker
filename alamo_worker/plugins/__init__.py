@@ -114,9 +114,12 @@ class PluginManager(object):
         _plugin = payload.get('type')
         try:
             _plugin = self._plugins[_plugin]
-            _plugin.execute(payload)
+            ret = _plugin.execute(payload)
         except KeyError:
+            ret = None
             logger.error('Could not find plugin ``{}``.'.format(_plugin))
+
+        return ret
 
 
 def plugin(cls):

@@ -1,2 +1,4 @@
 pbr
+requests
 Sphinx
+zmq

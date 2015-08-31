@@ -1,3 +1,4 @@
 nose
 mock
 coveralls
+responses
