@@ -62,7 +62,6 @@ TEST_CHECK = {
 class TestKairosdbPlugin(TestCase):
 
     def setUp(self):
-        super(TestKairosdbPlugin, self).setUp()
         self.kairosdb = KairosDBPlugin()
         self.cfg = {'host': 'localhost', 'port': '2222'}
         self.kairosdb.init(self.cfg)

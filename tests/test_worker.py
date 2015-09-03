@@ -6,12 +6,17 @@ from argparse import ArgumentParser
 from mock import MagicMock, patch
 
 from alamo_worker.manage import WorkerManagement
-from alamo_worker.queue import ZeroMQQueue
+from alamo_worker.plugins import PluginManager
 
 
 class TestWorker(TestCase):
+
+    @patch('alamo_worker.manage.WorkerManagement.__init__',
+           MagicMock(return_value=None))
     def setUp(self):
         self.worker = WorkerManagement()
+        self.worker.manager = PluginManager()
+        self.worker.parser = WorkerManagement.build_args()
 
     def _init_config(self, side_effect):
         self.worker.config = MagicMock()
@@ -40,34 +45,9 @@ class TestWorker(TestCase):
 
         self.assertTrue(load_mock.called)
 
-    @patch('alamo_worker.queue.zmq.Context')
-    def test_init_message_queue(self, context_mock):
-        queue = self.worker.init_message_queue('localhost', '2222')
-        self.assertTrue(context_mock.called)
-        self.assertTrue(isinstance(queue, ZeroMQQueue))
-
-    @patch('alamo_worker.manage.WorkerManagement.init_message_queue')
+    @patch('alamo_worker.queue_handler.ZeroMQQueue.connect')
     def test_connect_to_queue(self, queue_mock):
-        z_queue = MagicMock()
-        z_queue.connect = MagicMock()
-        queue_mock.return_value = z_queue
 
         self._init_config(['localhost', '2222'])
         self.worker._connect_to_queue()
-
-        queue_mock.assert_called_once_with('localhost', '2222')
-        z_queue.connect.assert_called_once_with()
-
-    @patch('alamo_worker.manage.WorkerManagement.parse_config')
-    @patch('alamo_worker.manage.WorkerManagement._load_plugins')
-    @patch('alamo_worker.manage.WorkerManagement._connect_to_queue')
-    @patch('alamo_worker.manage.WorkerManagement._run')
-    def test_execute(self, *args):
-        run_mock, queue_mock, plug_mock, parse_mock = args
-
-        self.worker.execute()
-
-        self.assertTrue(run_mock.called)
         self.assertTrue(queue_mock.called)
-        self.assertTrue(plug_mock.called)
-        self.assertTrue(parse_mock.called)

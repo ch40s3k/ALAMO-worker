@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+import time
+
 from configparser import NoSectionError
 
 from alamo_worker.logger import get_console_logger
@@ -111,6 +113,7 @@ class PluginManager(object):
 
         :param dict payload:
         """
+        start_time = time.time()
         _plugin = payload.get('type')
         try:
             _plugin = self._plugins[_plugin]
@@ -119,6 +122,9 @@ class PluginManager(object):
             ret = None
             logger.error('Could not find plugin ``{}``.'.format(_plugin))
 
+        logger.debug('Result received after: {}'.format(
+            time.time() - start_time)
+        )
         return ret
 
 

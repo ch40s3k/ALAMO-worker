@@ -5,11 +5,8 @@ import json
 
 import requests
 
-from requests.exceptions import ConnectionError, HTTPError
-
 from alamo_worker.logger import get_console_logger
 from alamo_worker.plugins import plugin
-
 from alamo_worker.plugins import BasePlugin
 
 logger = get_console_logger(__name__)
@@ -21,28 +18,37 @@ class KairosDBPlugin(BasePlugin):
     _endpoint = '/api/v1/datapoints/query'
 
     def execute(self, check):
-        endpoint = "http://{}:{}{}".format(self._cfg['host'],
-                                           self._cfg['port'],
-                                           self._endpoint)
+
+        result = None
+
+        if self._cfg['host'].startswith('http://') or \
+                self._cfg['host'].startswith('https://'):
+
+            endpoint = "{}:{}{}".format(self._cfg['host'],
+                                        self._cfg['port'],
+                                        self._endpoint)
+
+        else:
+            endpoint = "http://{}:{}{}".format(self._cfg['host'],
+                                               self._cfg['port'],
+                                               self._endpoint)
         try:
+
             response = requests.post(
                 endpoint,
                 data=json.dumps(check.get('query'), ''),
-                timeout=300
+                timeout=300,
             )
             response.raise_for_status()
             data = response.json()
-            ret = self.process(check, data)
+            result = self.process(check, data)
 
-        except (ValueError, HTTPError) as e:
-            ret = None
+        except (ValueError,
+                requests.exceptions.RequestException) as e:
+            result = None
             logger.error(e)
 
-        except ConnectionError as e:
-            ret = None
-            logger.error(e)
-
-        return ret
+        return result
 
     @staticmethod
     def process(check=None, data=None):
